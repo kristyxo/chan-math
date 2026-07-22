@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>整式的加減 - 互動學習平台</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background-color: #F0F4F8;
+            user-select: none;
+        }
+        .math-expr {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+        .btn-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        .btn-hover:active {
+            transform: translateY(0);
+        }
+        /* 拖拽卡片樣式 */
+        .drag-card {
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .drag-card:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+        /* 飄浮提示動畫 */
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+        .float-text {
+            animation: floatUp 0.8s ease-out forwards;
+        }
+        /* 翻轉動畫 */
+        .flip-active {
+            animation: flip 0.4s ease-in-out;
+        }
+        @keyframes flip {
+            0% { transform: rotateX(0deg); }
+            50% { transform: rotateX(180deg); }
+            100% { transform: rotateX(0deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4">
+
+    <!-- ==================== 1. 首頁 (Home) ==================== -->
+    <div id="page-home" class="w-full max-w-4xl flex flex-col items-center justify-center min-h-[85vh]">
+        <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 text-center w-full border-t-8 border-blue-500">
+            <div class="inline-block p-4 bg-blue-50 rounded-full mb-4 text-blue-600 shadow-inner">
+                <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 44L28 20" />
+                    <path d="M28 44L12 20" />
+                    <path d="M33 18C33 15 37 14 38 16C39 18 33 22 33 24H39" stroke-width="3"/>
+                    <path d="M44 32H56" />
+                    <path d="M50 26V38" />
+                </svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 mb-3 tracking-wide">整式的加減</h1>
+            <p class="text-gray-500 text-lg mb-10">趣味數學互動遊戲與實驗室</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 按鈕 1 -->
+                <button onclick="switchPage('game1')" class="btn-hover bg-gradient-to-br from-amber-400 to-orange-500 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-3">
+                    <i class="fa-solid fa-hand-holding text-4xl"></i>
+                    <span class="text-xl font-bold">單項式掉落接取</span>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full">動態小遊戲</span>
+                </button>
+
+                <!-- 按鈕 2 -->
+                <button onclick="switchPage('game2')" class="btn-hover bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-3">
+                    <i class="fa-solid fa-layer-group text-4xl"></i>
+                    <span class="text-xl font-bold">多項式分類賽</span>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full">拖拽分類題型</span>
+                </button>
+
+                <!-- 按鈕 3 -->
+                <button onclick="switchPage('game3')" class="btn-hover bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-3">
+                    <i class="fa-solid fa-wand-magic-sparkles text-4xl"></i>
+                    <span class="text-xl font-bold">去括號實驗室</span>
+                    <span class="text-xs bg-white/20 px-3 py-1 rounded-full">法則與演練</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== 2. 第1個遊戲：單項式掉落接取 ==================== -->
+    <div id="page-game1" class="w-full max-w-4xl hidden flex-col items-center">
+        <div class="w-full bg-white rounded-2xl shadow-md p-4 mb-4 flex justify-between items-center">
+            <button onclick="switchPage('home')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-house"></i> 回到首頁
+            </button>
+            <div class="flex items-center gap-6 font-bold text-lg">
+                <span class="text-amber-600"><i class="fa-solid fa-clock mr-1"></i>時間: <span id="g1-timer">60</span>s</span>
+                <span class="text-blue-600"><i class="fa-solid fa-trophy mr-1"></i>得分: <span id="g1-score">60</span></span>
+            </div>
+            <button onclick="resetGame1()" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> 重設 reset
+            </button>
+        </div>
+
+        <div class="relative w-full h-[500px] bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-4 border-slate-700" id="g1-container">
+            <div id="g1-banner" class="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500/90 text-white px-6 py-2 rounded-full text-sm font-bold backdrop-blur shadow-lg z-10">
+                🎯 只接「單項式」(+10分)！漏接單項式扣5分！避開多項式！
+            </div>
+
+            <div id="g1-xo" class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-24 cursor-pointer z-20 flex flex-col items-center justify-end">
+                <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                    <path d="M 20 80 C 10 45 15 15 30 20 L 38 5 L 50 20 L 62 5 L 70 20 C 85 15 90 45 80 80 Z" fill="#202A36"/>
+                    <ellipse cx="50" cy="68" rx="22" ry="18" fill="#FFFFFF"/>
+                    <path d="M 28 72 Q 50 80 72 72 L 74 86 Q 50 92 26 86 Z" fill="#00B4D8"/>
+                    <ellipse cx="37" cy="38" rx="10" ry="8" fill="#FFFFFF" stroke="#000" stroke-width="2"/>
+                    <ellipse cx="63" cy="38" rx="10" ry="8" fill="#FFFFFF" stroke="#000" stroke-width="2"/>
+                    <circle cx="34" cy="38" r="3.5" fill="#000000"/>
+                    <circle cx="60" cy="38" r="3.5" fill="#000000"/>
+                    <path d="M 43 46 Q 50 42 57 46 Q 50 56 43 46 Z" fill="#FFB703"/>
+                    <ellipse cx="35" cy="90" rx="9" ry="4" fill="#FFB703"/>
+                    <ellipse cx="65" cy="90" rx="9" ry="4" fill="#FFB703"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">💡 操作提示：鍵盤 ⬅️ ➡️ 方向鍵、A/D 鍵，或在畫面上移動滑鼠控制 XO 左右移動。</p>
+    </div>
+
+
+    <!-- ==================== 3. 第2個遊戲：多項式分類賽 ==================== -->
+    <div id="page-game2" class="w-full max-w-5xl hidden flex-col items-center">
+        <div class="w-full bg-white rounded-2xl shadow-md p-4 mb-6 flex justify-between items-center">
+            <button onclick="switchPage('home')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-house"></i> 回到首頁
+            </button>
+            <h2 class="text-xl font-extrabold text-gray-800">多項式分類賽 (拖拽卡片到下方對應列)</h2>
+            <button onclick="resetGame2()" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> 重設 reset
+            </button>
+        </div>
+
+        <div id="g2-status-banner" class="w-full bg-amber-100 border border-amber-300 text-amber-800 font-bold px-6 py-3 rounded-xl text-center mb-6 shadow-sm">
+            請將上方卡片拖拽（或點擊選取）至下方的分類欄中！
+        </div>
+
+        <div class="w-full bg-amber-50/50 rounded-2xl shadow-md p-6 mb-8 border-2 border-amber-200">
+            <h3 class="text-sm font-bold text-amber-700 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-boxes-stacked"></i> 待分類項目 (共 9 題)
+            </h3>
+            <div id="g2-pool" class="flex flex-wrap gap-4 min-h-[90px] justify-center items-center">
+            </div>
+        </div>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-blue-500 flex flex-col">
+                <div class="text-center pb-3 border-b border-gray-100 mb-4">
+                    <h3 class="text-lg font-bold text-blue-600">單項式</h3>
+                    <p class="text-xs text-gray-400 mt-1">數與字母的乘積或單個數/字母</p>
+                </div>
+                <div id="g2-col-monomial" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'monomial')" class="flex-1 bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-xl p-3 flex flex-col gap-3 min-h-[220px]">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-emerald-500 flex flex-col">
+                <div class="text-center pb-3 border-b border-gray-100 mb-4">
+                    <h3 class="text-lg font-bold text-emerald-600">二項式</h3>
+                    <p class="text-xs text-gray-400 mt-1">由 2 個單項式相加組成的多項式</p>
+                </div>
+                <div id="g2-col-binomial" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'binomial')" class="flex-1 bg-emerald-50/50 border-2 border-dashed border-emerald-200 rounded-xl p-3 flex flex-col gap-3 min-h-[220px]">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-purple-500 flex flex-col">
+                <div class="text-center pb-3 border-b border-gray-100 mb-4">
+                    <h3 class="text-lg font-bold text-purple-600">三項式</h3>
+                    <p class="text-xs text-gray-400 mt-1">由 3 個單項式相加組成的多項式</p>
+                </div>
+                <div id="g2-col-trinomial" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'trinomial')" class="flex-1 bg-purple-50/50 border-2 border-dashed border-purple-200 rounded-xl p-3 flex flex-col gap-3 min-h-[220px]">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== 4. 第3個遊戲：去括號實驗室 ==================== -->
+    <div id="page-game3" class="w-full max-w-5xl hidden flex-col items-center">
+        <div class="w-full bg-white rounded-2xl shadow-md p-4 mb-6 flex justify-between items-center">
+            <button onclick="switchPage('home')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-house"></i> 回到首頁
+            </button>
+            <h2 class="text-xl font-extrabold text-gray-800">去括號實驗室</h2>
+            <button onclick="resetGame3()" class="bg-amber-100 hover:bg-amber-200 text-amber-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> 重設 reset
+            </button>
+        </div>
+
+        <div class="flex gap-3 mb-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+            <button id="g3-tab-1" onclick="switchG3Tab(1)" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-emerald-500 text-white shadow-md">
+                (1) 去括號法則
+            </button>
+            <button id="g3-tab-2" onclick="switchG3Tab(2)" class="px-5 py-2.5 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-100 transition-all">
+                (2) 去括號魔法
+            </button>
+            <button id="g3-tab-3" onclick="switchG3Tab(3)" class="px-5 py-2.5 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-100 transition-all">
+                (3) 綜合演練
+            </button>
+        </div>
+
+        <!-- 子分頁 1：去括號法則 -->
+        <div id="g3-sub-1" class="w-full flex flex-col gap-6">
+            <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-amber-400">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-book-bookmark text-amber-500"></i> 去括號法則核心點
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                        <span class="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded">規則 1</span>
+                        <h4 class="font-bold text-emerald-800 mt-2 mb-1">括號前是 "+" 號</h4>
+                        <p class="text-sm text-gray-600 mb-2">去掉括號與 "+" 號後，括號內各項<span class="text-emerald-600 font-bold">保持不變號</span>。</p>
+                        <div class="bg-white p-3 rounded-lg text-center font-bold text-gray-700 math-expr text-lg">
+                            +(a + b - c) = <span class="text-emerald-600">a + b - c</span>
+                        </div>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-4">
+                        <span class="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded">規則 2</span>
+                        <h4 class="font-bold text-rose-800 mt-2 mb-1">括號前是 "-" 號</h4>
+                        <p class="text-sm text-gray-600 mb-2">去掉括號與 "-" 號後，括號內各項<span class="text-rose-600 font-bold">全都要變號</span>。</p>
+                        <div class="bg-white p-3 rounded-lg text-center font-bold text-gray-700 math-expr text-lg">
+                            -(a + b - c) = <span class="text-rose-600">-a - b + c</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-emerald-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-emerald-500"></i> 去括號同步練習 (共3題)
+                </h3>
+                <div class="flex flex-col gap-6" id="g3-practice-list">
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <p class="font-bold text-gray-800 mb-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-2">第 1 題</span> 去括號：<span class="math-expr text-lg font-bold text-blue-600">+(3x - 2y + 5)</span> 的結果是？</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <button onclick="checkG3Practice(1, this, false)" class="g3-q1-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">A. -3x + 2y - 5</button>
+                            <button onclick="checkG3Practice(1, this, true)" class="g3-q1-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">B. 3x - 2y + 5</button>
+                            <button onclick="checkG3Practice(1, this, false)" class="g3-q1-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">C. 3x + 2y + 5</button>
+                            <button onclick="checkG3Practice(1, this, false)" class="g3-q1-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">D. -3x - 2y + 5</button>
+                        </div>
+                        <div id="g3-ans-1" class="mt-3 text-sm font-bold hidden"></div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <p class="font-bold text-gray-800 mb-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-2">第 2 題</span> 去括號：<span class="math-expr text-lg font-bold text-blue-600">-(2a - 5b + 3)</span> 的結果是？</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <button onclick="checkG3Practice(2, this, false)" class="g3-q2-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">A. -2a - 5b + 3</button>
+                            <button onclick="checkG3Practice(2, this, false)" class="g3-q2-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">B. 2a - 5b - 3</button>
+                            <button onclick="checkG3Practice(2, this, true)" class="g3-q2-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">C. -2a + 5b - 3</button>
+                            <button onclick="checkG3Practice(2, this, false)" class="g3-q2-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">D. -2a + 5b + 3</button>
+                        </div>
+                        <div id="g3-ans-2" class="mt-3 text-sm font-bold hidden"></div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <p class="font-bold text-gray-800 mb-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs mr-2">第 3 題</span> 化簡去括號：<span class="math-expr text-lg font-bold text-blue-600">5x - (2x - 3)</span> 正確的第二步是？</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <button onclick="checkG3Practice(3, this, true)" class="g3-q3-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">A. 5x - 2x + 3</button>
+                            <button onclick="checkG3Practice(3, this, false)" class="g3-q3-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">B. 5x - 2x - 3</button>
+                            <button onclick="checkG3Practice(3, this, false)" class="g3-q3-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">C. 5x + 2x - 3</button>
+                            <button onclick="checkG3Practice(3, this, false)" class="g3-q3-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer">D. 5x + 2x + 3</button>
+                        </div>
+                        <div id="g3-ans-3" class="mt-3 text-sm font-bold hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 子分頁 2：去括號魔法門 (已修正數學邏輯) -->
+        <div id="g3-sub-2" class="w-full hidden flex-col items-center">
+            <div class="bg-white rounded-2xl shadow-md p-8 w-full text-center border-t-4 border-teal-500">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">去括號魔法門</h3>
+                <p class="text-gray-500 text-sm mb-8">選擇不同的符號門，觀看括號內項目的正負號變化！</p>
+
+                <!-- 算式展示區域：內部固定為 (+b - c) -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 mb-6 flex items-center justify-center gap-4 text-3xl md:text-5xl font-serif">
+                    <span>a</span>
+                    <span id="magic-op" class="font-bold text-emerald-500">+</span>
+                    <span class="text-gray-400">(</span>
+                    <div class="flex gap-4">
+                        <span id="magic-b" class="text-emerald-600 font-bold">+b</span>
+                        <span id="magic-c" class="text-rose-600 font-bold">-c</span>
+                    </div>
+                    <span class="text-gray-400">)</span>
+                </div>
+
+                <!-- 去括號結果 (藍色) 與解析說明 -->
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-8 flex flex-col items-center justify-center gap-1">
+                    <span class="text-xs text-blue-500 font-sans block">去括號後結果</span>
+                    <span id="magic-result" class="text-2xl md:text-3xl font-bold text-blue-600 math-expr">a + b - c</span>
+                    <span id="magic-explain" class="text-xs text-gray-500 font-sans mt-1">💡 括號前是正號，去除括號後，內部 +b 與 -c 保持不變號。</span>
+                </div>
+
+                <div class="flex justify-center gap-6">
+                    <button onclick="setMagicDoor('+')" class="btn-hover px-8 py-4 bg-emerald-500 text-white rounded-2xl shadow-lg font-bold flex flex-col items-center gap-1">
+                        <span class="text-2xl"><i class="fa-solid fa-plus"></i> 正號門</span>
+                        <span class="text-xs opacity-90">內部保持不變號</span>
+                    </button>
+                    <button onclick="setMagicDoor('-')" class="btn-hover px-8 py-4 bg-rose-500 text-white rounded-2xl shadow-lg font-bold flex flex-col items-center gap-1">
+                        <span class="text-2xl"><i class="fa-solid fa-minus"></i> 負號門</span>
+                        <span class="text-xs opacity-90">內部各項全變號</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 子分頁 3：綜合演練 -->
+        <div id="g3-sub-3" class="w-full hidden flex-col items-center">
+            <div class="bg-white rounded-2xl shadow-md p-8 w-full border-t-4 border-indigo-500 text-center">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">綜合演練逐步拆解</h3>
+                <p class="text-gray-500 text-sm mb-6">題目：<span class="math-expr font-bold text-blue-600 text-xl">(3x² + 2x - 1) - (x² - 3x + 2)</span></p>
+
+                <div class="flex justify-center items-center gap-3 mb-8">
+                    <div id="step-dot-0" class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">1</div>
+                    <div class="w-8 h-0.5 bg-gray-200"></div>
+                    <div id="step-dot-1" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-sm">2</div>
+                    <div class="w-8 h-0.5 bg-gray-200"></div>
+                    <div id="step-dot-2" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-sm">3</div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 min-h-[160px] flex flex-col items-center justify-center mb-6">
+                    <h4 id="step-title" class="text-lg font-bold text-indigo-600 mb-2">第 1 步：去括號</h4>
+                    <div id="step-content" class="text-2xl md:text-3xl font-serif text-gray-800 math-expr">
+                        3x² + 2x - 1 <span class="text-rose-500 font-bold">- x² + 3x - 2</span>
+                    </div>
+                    <p id="step-desc" class="text-xs text-gray-500 mt-3">第一個括號前是正號不變號，第二個括號前是負號，括號內各項全變號！</p>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button id="btn-step-prev" onclick="changeStep(-1)" disabled class="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-400 font-bold text-sm">
+                        <i class="fa-solid fa-arrow-left"></i> 上一步
+                    </button>
+                    <button id="btn-step-next" onclick="changeStep(1)" class="px-6 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 font-bold text-sm shadow-md">
+                        下一步 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript 邏輯區 -->
+    <script>
+        function switchPage(pageId) {
+            ['home', 'game1', 'game2', 'game3'].forEach(p => {
+                document.getElementById(`page-${p}`).classList.add('hidden');
+            });
+            const target = document.getElementById(`page-${pageId}`);
+            target.classList.remove('hidden');
+            target.classList.add('flex');
+
+            if (pageId === 'game1') resetGame1();
+            if (pageId === 'game2') resetGame2();
+            if (pageId === 'game3') resetGame3();
+        }
+
+        // --- 1. 單項式掉落遊戲 ---
+        let g1Timer = 60;
+        let g1Score = 60; 
+        let g1Interval = null;
+        let g1SpawnInterval = null;
+        let g1XOPos = 50; 
+
+        const monomials = ["3x", "-5a²", "7", "-xy²", "½m", "-8z", "4x³", "a"];
+        const polynomials = ["x+y", "a²-1", "2x+3", "m-n", "x²+2x+1", "p-q"];
+
+        function resetGame1() {
+            clearInterval(g1Interval);
+            clearInterval(g1SpawnInterval);
+            g1Timer = 60;
+            g1Score = 60; 
+            document.getElementById('g1-timer').textContent = g1Timer;
+            document.getElementById('g1-score').textContent = g1Score;
+            
+            document.querySelectorAll('.g1-falling-item').forEach(el => el.remove());
+
+            g1Interval = setInterval(() => {
+                g1Timer--;
+                document.getElementById('g1-timer').textContent = g1Timer;
+
+                if (g1Timer <= 0) {
+                    clearInterval(g1Interval);
+                    clearInterval(g1SpawnInterval);
+                    alert(`🎉 遊戲結束！最終得分：${g1Score} 分！`);
+                }
+            }, 1000);
+
+            g1SpawnInterval = setInterval(() => {
+                const currentCount = document.querySelectorAll('.g1-falling-item').length;
+                if (currentCount < 3) spawnG1Item();
+            }, 600);
+        }
+
+        function spawnG1Item() {
+            const container = document.getElementById('g1-container');
+            const item = document.createElement('div');
+            
+            const isMonomial = Math.random() > 0.4;
+            const text = isMonomial 
+                ? monomials[Math.floor(Math.random() * monomials.length)]
+                : polynomials[Math.floor(Math.random() * polynomials.length)];
+
+            item.className = "g1-falling-item absolute bg-white/95 border-2 border-amber-400 text-gray-800 font-bold math-expr px-4 py-2 rounded-2xl shadow-md z-10 text-lg flex items-center justify-center";
+            item.textContent = text;
+            item.dataset.isMonomial = isMonomial;
+
+            const leftPos = Math.random() * 80 + 10;
+            item.style.left = `${leftPos}%`;
+            item.style.top = '-50px';
+
+            container.appendChild(item);
+
+            let topPos = -50;
+            const speed = 2.5;
+
+            const fallAnim = setInterval(() => {
+                topPos += speed;
+                item.style.top = `${topPos}px`;
+
+                if (topPos >= 400 && topPos <= 440) {
+                    const itemLeft = parseFloat(item.style.left);
+                    if (Math.abs(itemLeft - g1XOPos) < 12) { 
+                        clearInterval(fallAnim);
+                        item.remove();
+                        if (item.dataset.isMonomial === 'true') {
+                            g1Score += 10;
+                            showFloatingText("+10", itemLeft, 400, "text-emerald-400");
+                        } else {
+                            g1Score = Math.max(0, g1Score - 5);
+                            showFloatingText("-5 (多項式)", itemLeft, 400, "text-rose-400");
+                        }
+                        document.getElementById('g1-score').textContent = g1Score;
+                    }
+                }
+
+                if (topPos > 470) {
+                    clearInterval(fallAnim);
+                    item.remove();
+                    if (item.dataset.isMonomial === 'true') {
+                        g1Score = Math.max(0, g1Score - 5);
+                        document.getElementById('g1-score').textContent = g1Score;
+                        showFloatingText("-5 漏接", parseFloat(item.style.left), 460, "text-rose-400");
+                    }
+                }
+            }, 20);
+        }
+
+        function showFloatingText(txt, left, top, colorClass) {
+            const container = document.getElementById('g1-container');
+            const el = document.createElement('div');
+            el.className = `float-text absolute font-extrabold text-lg ${colorClass} z-30 pointer-events-none`;
+            el.style.left = `${left}%`;
+            el.style.top = `${top}px`;
+            el.textContent = txt;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('page-game1').classList.contains('hidden')) return;
+            if (e.key === 'ArrowLeft' || e.key === 'a') g1XOPos = Math.max(10, g1XOPos - 6);
+            if (e.key === 'ArrowRight' || e.key === 'd') g1XOPos = Math.min(90, g1XOPos + 6);
+            updateXOPosition();
+        });
+
+        document.getElementById('g1-container')?.addEventListener('mousemove', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const relX = ((e.clientX - rect.left) / rect.width) * 100;
+            g1XOPos = Math.max(10, Math.min(90, relX));
+            updateXOPosition();
+        });
+
+        function updateXOPosition() {
+            const xo = document.getElementById('g1-xo');
+            if (xo) xo.style.left = `${g1XOPos}%`;
+        }
+
+
+        // --- 2. 多項式分類賽邏輯 ---
+        const g2ItemsData = [
+            { id: '1', text: '5x²', type: 'monomial' },
+            { id: '2', text: '-3ab', type: 'monomial' },
+            { id: '3', text: '8', type: 'monomial' },
+            { id: '4', text: '2x + 1', type: 'binomial' },
+            { id: '5', text: 'a² - b²', type: 'binomial' },
+            { id: '6', text: '3m - 7n', type: 'binomial' },
+            { id: '7', text: 'x² + 2x + 1', type: 'trinomial' },
+            { id: '8', text: 'a + b - c', type: 'trinomial' },
+            { id: '9', text: '2x² - 3x + 5', type: 'trinomial' },
+        ];
+
+        let selectedG2Card = null;
+
+        function resetGame2() {
+            const pool = document.getElementById('g2-pool');
+            ['g2-col-monomial', 'g2-col-binomial', 'g2-col-trinomial'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            pool.innerHTML = '';
+
+            document.getElementById('g2-status-banner').textContent = '請將上方卡片拖拽（或點擊選取）至下方的分類欄中！';
+            document.getElementById('g2-status-banner').className = 'w-full bg-amber-100 border border-amber-300 text-amber-800 font-bold px-6 py-3 rounded-xl text-center mb-6 shadow-sm';
+
+            const shuffled = [...g2ItemsData].sort(() => Math.random() - 0.5);
+            shuffled.forEach(item => {
+                const card = document.createElement('div');
+                card.id = `g2-card-${item.id}`;
+                card.draggable = true;
+                card.ondragstart = (e) => e.dataTransfer.setData('text/plain', item.id);
+                card.onclick = () => selectG2Card(card, item.id);
+                card.dataset.type = item.type;
+                card.dataset.text = item.text;
+                card.className = "drag-card bg-amber-50 border-2 border-amber-300 hover:border-amber-500 text-amber-900 font-bold math-expr px-5 py-3 rounded-xl shadow-sm text-lg flex items-center gap-2 transition-all";
+                card.innerHTML = `<span>${item.text}</span> <span class="g2-icon text-sm"></span>`;
+                pool.appendChild(card);
+            });
+        }
+
+        function selectG2Card(card, id) {
+            document.querySelectorAll('.drag-card').forEach(c => c.classList.remove('ring-4', 'ring-amber-400'));
+            selectedG2Card = { element: card, id: id };
+            card.classList.add('ring-4', 'ring-amber-400');
+        }
+
+        function allowDrop(e) { e.preventDefault(); }
+
+        function handleDrop(e, targetType) {
+            e.preventDefault();
+            const cardId = e.dataTransfer ? e.dataTransfer.getData('text/plain') : selectedG2Card?.id;
+            if (!cardId) return;
+
+            const card = document.getElementById(`g2-card-${cardId}`);
+            if (!card) return;
+
+            const isCorrect = (card.dataset.type === targetType);
+            const targetCol = document.getElementById(`g2-col-${targetType}`);
+            targetCol.appendChild(card);
+
+            const iconSpan = card.querySelector('.g2-icon');
+
+            if (isCorrect) {
+                if (targetType === 'monomial') card.className = "drag-card bg-blue-100 border-2 border-blue-500 text-blue-800 font-bold math-expr px-5 py-3 rounded-xl shadow-sm text-lg flex items-center justify-between";
+                if (targetType === 'binomial') card.className = "drag-card bg-emerald-100 border-2 border-emerald-500 text-emerald-800 font-bold math-expr px-5 py-3 rounded-xl shadow-sm text-lg flex items-center justify-between";
+                if (targetType === 'trinomial') card.className = "drag-card bg-purple-100 border-2 border-purple-500 text-purple-800 font-bold math-expr px-5 py-3 rounded-xl shadow-sm text-lg flex items-center justify-between";
+                iconSpan.innerHTML = "👍 讚";
+            } else {
+                card.className = "drag-card bg-gray-100 border-2 border-gray-400 text-gray-900 font-bold math-expr px-5 py-3 rounded-xl shadow-sm text-lg flex items-center justify-between";
+                iconSpan.innerHTML = "💪 加油";
+            }
+
+            checkG2Completion();
+        }
+
+        function checkG2Completion() {
+            const pool = document.getElementById('g2-pool');
+            if (pool.children.length > 0) {
+                document.getElementById('g2-status-banner').textContent = '還有卡片未分類，請繼續拖拽！💪';
+                return;
+            }
+
+            let allCorrect = true;
+            g2ItemsData.forEach(item => {
+                const card = document.getElementById(`g2-card-${item.id}`);
+                if (!card.parentElement.id.includes(item.type)) allCorrect = false;
+            });
+
+            const banner = document.getElementById('g2-status-banner');
+            if (allCorrect) {
+                banner.textContent = '🎉 你太優秀了！完全分類正確！🎉';
+                banner.className = 'w-full bg-emerald-500 text-white font-extrabold text-xl px-6 py-4 rounded-xl text-center mb-6 shadow-lg animate-bounce';
+            } else {
+                banner.textContent = '還有未放對的項目，請繼續調整位置！💪';
+                banner.className = 'w-full bg-amber-100 border border-amber-300 text-amber-800 font-bold px-6 py-3 rounded-xl text-center mb-6 shadow-sm';
+            }
+        }
+
+
+        // --- 3. 去括號實驗室邏輯 ---
+        let g3SolvedState = { 1: false, 2: false, 3: false };
+
+        function resetGame3() {
+            switchG3Tab(1);
+            g3SolvedState = { 1: false, 2: false, 3: false };
+            [1, 2, 3].forEach(q => {
+                const ans = document.getElementById(`g3-ans-${q}`);
+                if (ans) {
+                    ans.classList.add('hidden');
+                    ans.innerHTML = '';
+                }
+                document.querySelectorAll(`.g3-q${q}-btn`).forEach(b => {
+                    b.className = "g3-q" + q + "-btn p-3 bg-white border border-gray-300 text-gray-900 rounded-xl font-medium text-sm hover:bg-amber-50 hover:border-amber-400 transition-all cursor-pointer";
+                    b.disabled = false;
+                });
+            });
+            setMagicDoor('+');
+            currentStep = 0;
+            updateStepDisplay();
+        }
+
+        function switchG3Tab(tabIndex) {
+            [1, 2, 3].forEach(i => {
+                document.getElementById(`g3-sub-${i}`).classList.add('hidden');
+                document.getElementById(`g3-tab-${i}`).className = "px-5 py-2.5 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-100 transition-all";
+            });
+            document.getElementById(`g3-sub-${tabIndex}`).classList.remove('hidden');
+            document.getElementById(`g3-tab-${tabIndex}`).className = "px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-emerald-500 text-white shadow-md";
+        }
+
+        function checkG3Practice(qNum, btnElement, isCorrect) {
+            if (g3SolvedState[qNum]) return;
+
+            const ansDiv = document.getElementById(`g3-ans-${qNum}`);
+            ansDiv.classList.remove('hidden');
+
+            if (isCorrect) {
+                g3SolvedState[qNum] = true;
+                document.querySelectorAll(`.g3-q${qNum}-btn`).forEach(b => {
+                    b.className = "g3-q" + qNum + "-btn p-3 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-medium text-sm transition-all";
+                    b.disabled = true;
+                });
+
+                btnElement.className = "g3-q" + qNum + "-btn p-3 bg-emerald-600 text-white border-2 border-emerald-700 rounded-xl font-bold text-sm shadow-md transition-all";
+                btnElement.disabled = true;
+
+                ansDiv.className = "mt-3 text-sm font-bold text-emerald-600 flex items-center gap-1";
+                ansDiv.innerHTML = `<span>✅ 回答正確！太棒了！去括號法則掌握得很好！</span>`;
+            } else {
+                btnElement.className = "g3-q" + qNum + "-btn p-3 bg-rose-50 border-2 border-rose-400 text-rose-700 font-bold rounded-xl text-sm transition-all";
+                ansDiv.className = "mt-3 text-sm font-bold flex flex-wrap items-center gap-1";
+                ansDiv.innerHTML = `<span class="text-rose-500">❌ 回答錯誤。請記住：括號前是負號時，括號內各項都要變號喔！</span>
+                                    <span class="text-purple-600 font-bold ml-1">(請繼續作答，選按答案，直到正確，加油)</span>`;
+            }
+        }
+
+        // ⭐【關鍵修正區】：魔法門去括號邏輯 ⭐
+        function setMagicDoor(sign) {
+            const op = document.getElementById('magic-op');
+            const mb = document.getElementById('magic-b');
+            const mc = document.getElementById('magic-c');
+            const res = document.getElementById('magic-result');
+            const exp = document.getElementById('magic-explain');
+
+            // 題目括號內部固定為 (+b - c)，方便對比前後變化
+            mb.textContent = '+b';
+            mb.className = 'text-emerald-600 font-bold';
+            mc.textContent = '-c';
+            mc.className = 'text-rose-600 font-bold';
+
+            if (sign === '+') {
+                op.textContent = '+';
+                op.className = 'font-bold text-emerald-500';
+                // a + (+b - c) => a + b - c (不變號)
+                res.textContent = 'a + b - c';
+                exp.textContent = '💡 括號前是正號，去除括號後，內部 +b 與 -c 保持不變號。';
+            } else {
+                op.textContent = '-';
+                op.className = 'font-bold text-rose-500';
+                // a - (+b - c) => a - b + c (全變號)
+                res.textContent = 'a - b + c';
+                exp.textContent = '💡 括號前是負號，去除括號後，內部 +b 變成 -b、-c 變成 +c (全變號)。';
+            }
+        }
+
+        // 綜合演練步驟
+        const stepsData = [
+            {
+                title: "第 1 步：去括號",
+                html: `3x² + 2x - 1 <span class="text-rose-500 font-bold">- x² + 3x - 2</span>`,
+                desc: "第一個括號前是正號不變號，第二個括號前是負號，括號內各項全變號！"
+            },
+            {
+                title: "第 2 步：同類項分組",
+                html: `<span class="bg-blue-100 px-2 py-1 rounded text-blue-700">(3x² - x²)</span> + <span class="bg-emerald-100 px-2 py-1 rounded text-emerald-700">(2x + 3x)</span> + <span class="bg-amber-100 px-2 py-1 rounded text-amber-700">(-1 - 2)</span>`,
+                desc: "把含 x²、含 x 與常數項分別歸類組合。"
+            },
+            {
+                title: "第 3 步：合併同類項得出結果",
+                html: `<span class="text-blue-600 font-bold">2x²</span> + <span class="text-emerald-600 font-bold">5x</span> <span class="text-amber-600 font-bold">- 3</span>`,
+                desc: "係數相加減，字母與指數保持不變，得出最終化簡結果！"
+            }
+        ];
+
+        let currentStep = 0;
+
+        function changeStep(delta) {
+            currentStep = Math.max(0, Math.min(stepsData.length - 1, currentStep + delta));
+            updateStepDisplay();
+        }
+
+        function updateStepDisplay() {
+            const data = stepsData[currentStep];
+            document.getElementById('step-title').textContent = data.title;
+            document.getElementById('step-content').innerHTML = data.html;
+            document.getElementById('step-desc').textContent = data.desc;
+
+            document.getElementById('btn-step-prev').disabled = (currentStep === 0);
+            document.getElementById('btn-step-next').disabled = (currentStep === stepsData.length - 1);
+
+            [0, 1, 2].forEach(i => {
+                const dot = document.getElementById(`step-dot-${i}`);
+                if (i === currentStep) {
+                    dot.className = "w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-md";
+                } else {
+                    dot.className = "w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-bold flex items-center justify-center text-sm";
+                }
+            });
+        }
+
+        switchPage('home');
+    </script>
+</body>
+</html>
